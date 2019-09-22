@@ -1,21 +1,24 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "sensor_msgs/LaserScan.h"
+
 float twistboi = 0;
 float velboi = 0;
-/**
-* This tutorial demonstrates simple receipt of messages over the ROS system.
-*/
-void chatterCallback (const geometry_msgs::Twist::ConstPtr & msg )
+float laserboi = [];
+
+void driveCallback (const geometry_msgs::Twist::ConstPtr& msg )
 {
 ROS_INFO ( "I heard: [a twist] %f %f", msg->linear.x, msg->angular.z);
 velboi = msg->linear.x;
 twistboi = msg->angular.z;
 }
 
-/*void sensingCallback (const sensor_msgs::LaserScan::ConstPtr & msg)
+void sensingCallback (const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-ROS_INFO(
-*/
+ROS_INFO ("I feel dat laser.")
+laserboi = msg->ranges;
+}
+
 
 int main ( int argc , char ** argv )
 {
@@ -51,10 +54,11 @@ ros :: NodeHandle n ;
 * is the number of messages that will be buffered up before beginning to throw
 * away the oldest ones.
 */
-ros::Subscriber sub = n.subscribe("/robot0/des_vel", 1, chatterCallback);
+ros::Subscriber drive_sub = n.subscribe("/robot0/des_vel", 1, driveCallback);
+ros::Subscriber sensing_sub = n.subscribe("/robot0/laser_1", 1, sensingCallback);
 
 
-ros::Publisher chatter_pub = n.advertise<geometry_msgs::Twist>("/robot0/cmd_vel" , 1);
+ros::Publisher drive_pub = n.advertise<geometry_msgs::Twist>("/robot0/cmd_vel" , 1);
 ros::Rate loop_rate (10);
 
 
@@ -67,13 +71,15 @@ while (ros::ok())
 geometry_msgs::Twist msg;
 msg.linear.x = velboi;
 msg.angular.z = twistboi;
+
+
 /**
 * The publish() function is how you send messages. The parameter
 * is the message object. The type of this object must agree with the type
 * given as a template parameter to the advertise<>() call, as was done
 * in the constructor above.
 */
-chatter_pub.publish(msg);
+drive_pub.publish(msg);
 ros::spinOnce();
 loop_rate.sleep();
 }
