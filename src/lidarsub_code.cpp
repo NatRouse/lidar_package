@@ -75,11 +75,11 @@ ros::NodeHandle n;
 * is the number of messages that will be buffered up before beginning to throw
 * away the oldest ones.
 */
-ros::Subscriber drive_sub = n.subscribe<geometry_msgs::Twist>("/robot/des_vel", 1, driveCallback);
-ros::Subscriber sensing_sub = n.subscribe<sensor_msgs::LaserScan>("/robot/laser_1", 1, sensingCallback);
+ros::Subscriber drive_sub = n.subscribe<geometry_msgs::Twist>("/robot0/des_vel", 1, driveCallback);
+ros::Subscriber sensing_sub = n.subscribe<sensor_msgs::LaserScan>("/robot0/laser_1", 1, sensingCallback);
 
 
-ros::Publisher drive_pub = n.advertise<geometry_msgs::Twist>("/robot/cmd_vel" , 1);
+ros::Publisher drive_pub = n.advertise<geometry_msgs::Twist>("/robot0/cmd_vel" , 1);
 ros::Rate loop_rate (10);
 
 
