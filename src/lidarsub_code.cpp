@@ -1,21 +1,23 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/LaserScan.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-float twistboi = 0;
-float velboi = 0;
-float laserboi = [];
+float twistboi;
+float velboi;
+std::vector<float> laserboi;
 
 void driveCallback (const geometry_msgs::Twist::ConstPtr& msg )
 {
-ROS_INFO ( "I heard: [a twist] %f %f", msg->linear.x, msg->angular.z);
+ROS_INFO ( "I heard a twist: %f %f", msg->linear.x, msg->angular.z);
 velboi = msg->linear.x;
 twistboi = msg->angular.z;
 }
 
 void sensingCallback (const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-ROS_INFO ("I feel dat laser.")
+ROS_INFO ("I feel dat laser. %d", (int)laserboi.size());
 laserboi = msg->ranges;
 }
 
@@ -32,13 +34,32 @@ int main ( int argc , char ** argv )
 * You must call one of the versions of ros::init() before using any other
 * part of the ROS system.
 */
-ros :: init ( argc , argv , "subscriber_node" );
+ros::init (argc, argv, "lidar_stuff" );
+
+/**
+LET IT BE KNOWN THAT I TRIED MY BEST TO INSERT THIS COMMAND LINE INPUT STUFF. IT DID NOT WORK FOR ME
+/*rosrun lidar_package node -n lidar1
+int opt;
+while ((opt = getopt(argc, (argv), "n:")) != -1) {
+	switch (opt) {
+		case 'n':
+			topic_name = optarg;
+			break;
+		default:
+			printf("The -%c is not a recognized parameter\n", opt);
+			break;
+	}
+}
+**/
+
+
 /**
 * NodeHandle is the main access point to communications with the ROS system.
 * The first NodeHandle constructed will fully initialize this node, and the last
 * NodeHandle destructed will close down the node.
 */
-ros :: NodeHandle n ;
+ros::NodeHandle n;
+
 /**
 * The subscribe() call is how you tell ROS that you want to receive messages
 * on a given topic. This invokes a call to the ROS
@@ -54,11 +75,11 @@ ros :: NodeHandle n ;
 * is the number of messages that will be buffered up before beginning to throw
 * away the oldest ones.
 */
-ros::Subscriber drive_sub = n.subscribe("/robot0/des_vel", 1, driveCallback);
-ros::Subscriber sensing_sub = n.subscribe("/robot0/laser_1", 1, sensingCallback);
+ros::Subscriber drive_sub = n.subscribe<geometry_msgs::Twist>("/robot/des_vel", 1, driveCallback);
+ros::Subscriber sensing_sub = n.subscribe<sensor_msgs::LaserScan>("/robot/laser_1", 1, sensingCallback);
 
 
-ros::Publisher drive_pub = n.advertise<geometry_msgs::Twist>("/robot0/cmd_vel" , 1);
+ros::Publisher drive_pub = n.advertise<geometry_msgs::Twist>("/robot/cmd_vel" , 1);
 ros::Rate loop_rate (10);
 
 
@@ -72,6 +93,16 @@ geometry_msgs::Twist msg;
 msg.linear.x = velboi;
 msg.angular.z = twistboi;
 
+/*if (*std::min_element(laserboi.begin(),laserboi.end()) <= 1) msg.linear.x = 0; */
+
+if (velboi>0 && laserboi[270/2]<2) {
+msg.linear.x = 0;
+msg.angular.z = 0.2;
+sleep(4);
+} else if (velboi>0 && laserboi[270/2]>=2) {
+msg.linear.x = velboi;
+msg.angular.z = 0;
+}
 
 /**
 * The publish() function is how you send messages. The parameter
@@ -80,10 +111,10 @@ msg.angular.z = twistboi;
 * in the constructor above.
 */
 drive_pub.publish(msg);
+
 ros::spinOnce();
 loop_rate.sleep();
 }
-
 
 /*ros::spin();*/
 

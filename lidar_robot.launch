@@ -1,0 +1,5 @@
+<launch>
+	<arg name="robot" default="robot0" />
+	<node name="lidar_robot" pkg="lidar_package" type="node" ns="$(arg robot)">
+</node>
+</launch>
